@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
+import { BullModule } from '@nestjs/bullmq';
 import appConfig from './config/app.config';
 import databaseConfig from './config/database.config';
 import redisConfig from './config/redis.config';
@@ -8,6 +9,7 @@ import jwtConfig from './config/jwt.config';
 import { AuthModule } from './modules/auth/auth.module';
 import { WorkspacesModule } from './modules/workspaces/workspaces.module';
 import { MembersModule } from './modules/members/members.module';
+import { InvitesModule } from './modules/invites/invites.module';
 
 @Module({
   imports: [
@@ -22,9 +24,20 @@ import { MembersModule } from './modules/members/members.module';
         uri: config.get<string>('database.uri'),
       }),
     }),
+    BullModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        connection: {
+          host: config.get<string>('redis.host'),
+          port: config.get<number>('redis.port'),
+          password: config.get<string>('redis.password'),
+        },
+      }),
+    }),
     AuthModule,
     WorkspacesModule,
     MembersModule,
+    InvitesModule,
   ],
 })
 export class AppModule {}
