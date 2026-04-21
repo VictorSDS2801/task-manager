@@ -11,6 +11,7 @@ import { JwtStrategy } from './application/strategies/jwt.strategy';
 import { LocalStrategy } from './application/strategies/local.strategy';
 import { RefreshTokenRepository } from './infrastructure/refresh-token.repository';
 import { AuthController } from './interfaces/auth.controller';
+import { MembersModule } from '../members/members.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { AuthController } from './interfaces/auth.controller';
         },
       }),
     }),
+    MembersModule,
   ],
   controllers: [AuthController],
   providers: [
