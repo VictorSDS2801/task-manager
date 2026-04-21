@@ -5,10 +5,14 @@ import { CreateTaskDto } from '../application/dto/create-task.dto';
 import { UpdateTaskDto } from '../application/dto/update-task.dto';
 import { TaskFiltersDto } from '../application/dto/task-filters.dto';
 import { TaskDocument } from './task.schema';
+import { EventsGateway } from '../../events/events.gateway';
 
 @Injectable()
 export class TasksService {
-  constructor(private readonly taskRepository: TaskRepository) {}
+  constructor(
+    private readonly taskRepository: TaskRepository,
+    private readonly eventsGateway: EventsGateway,
+  ) {}
 
   async create(dto: CreateTaskDto, workspaceId: string): Promise<TaskDocument> {
     return this.taskRepository.create({
@@ -50,6 +54,7 @@ export class TasksService {
     if (!updated) {
       throw new NotFoundException('Tarefa não encontrada');
     }
+    this.eventsGateway.emitTaskUpdated(workspaceId, updated);
     return updated;
   }
 
@@ -71,6 +76,7 @@ export class TasksService {
     if (!updated) {
       throw new NotFoundException('Tarefa não encontrada');
     }
+    this.eventsGateway.emitTaskUpdated(workspaceId, updated);
     return updated;
   }
 
@@ -89,6 +95,7 @@ export class TasksService {
     if (!updated) {
       throw new NotFoundException('Tarefa ou subtarefa não encontrada');
     }
+    this.eventsGateway.emitTaskUpdated(workspaceId, updated);
     return updated;
   }
 }
