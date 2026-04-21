@@ -17,6 +17,7 @@ import { AuthService } from '../domain/auth.service';
 import { TokenService } from '../domain/token.service';
 import { RefreshTokenRepository } from '../infrastructure/refresh-token.repository';
 import { RegisterDto } from '../application/dto/register.dto';
+import { MemberRepository } from '../../members/infrastructure/member.repository';
 
 @Controller('auth')
 export class AuthController {
@@ -24,6 +25,7 @@ export class AuthController {
     private readonly authService: AuthService,
     private readonly tokenService: TokenService,
     private readonly refreshTokenRepository: RefreshTokenRepository,
+    private readonly memberRepository: MemberRepository,
   ) {}
 
   @Post('register')
@@ -40,17 +42,23 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ): Promise<{ accessToken: string }> {
     const user = req.user as UserDocument & { _id: string };
+    const userId = user._id.toString();
+
+    const members = await this.memberRepository.findByUser(userId);
+    const workspaceId =
+      members.length > 0 ? members[0].workspaceId.toString() : '';
+    const role = members.length > 0 ? members[0].role : 'member';
 
     const payload: CurrentUserPayload = {
-      sub: user._id.toString(),
-      workspaceId: '',
-      role: 'member',
+      sub: userId,
+      workspaceId,
+      role,
     };
 
     const { accessToken, refreshToken } =
       this.tokenService.generateTokenPair(payload);
 
-    await this.refreshTokenRepository.save(payload.sub, refreshToken);
+    await this.refreshTokenRepository.save(userId, refreshToken);
 
     res.cookie('refresh_token', refreshToken, {
       httpOnly: true,

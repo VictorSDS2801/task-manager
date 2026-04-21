@@ -50,4 +50,8 @@ export class MemberRepository {
   async deleteAllFromWorkspace(workspaceId: string): Promise<void> {
     await this.model.deleteMany({ workspaceId }).exec();
   }
+
+  async findByUser(userId: string): Promise<MemberDocument[]> {
+    return this.model.find({ userId }).exec();
+  }
 }
